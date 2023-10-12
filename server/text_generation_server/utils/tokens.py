@@ -12,6 +12,7 @@ from text_generation_server.utils.logits_process import (
     HeterogeneousTopPLogitsWarper,
     HeterogeneousTypicalLogitsWarper,
     static_warper,
+    HeterogeneousCustomLogitsProcessor,
 )
 from text_generation_server.utils.watermark import WatermarkLogitsProcessor
 from transformers import PreTrainedTokenizerBase, RepetitionPenaltyLogitsProcessor
@@ -150,6 +151,7 @@ class StoppingCriteria:
 class HeterogeneousNextTokenChooser:
     def __init__(
         self,
+        tokenizer: PreTrainedTokenizerBase,
         dtype: torch.dtype,
         device: torch.device,
         watermark: List[bool],
@@ -158,6 +160,9 @@ class HeterogeneousNextTokenChooser:
         top_k: List[int],
         top_p: List[float],
         typical_p: List[float],
+        keyphrases: List[List[str]],
+        starting_multiplier: List[float], 
+        multiplier_step: List[float],
         do_sample: List[bool],
         seeds: List[int],
     ):
@@ -182,6 +187,10 @@ class HeterogeneousNextTokenChooser:
             if any([x != 1.0 for x in repetition_penalty])
             else None
         )
+
+        if any([x is not None and len(x) > 0 for x in keyphrases]):
+            do_sample = [sample or (x is not None and len(x) > 0) for x, sample in zip(keyphrases, do_sample)]
+            warpers.append(HeterogeneousCustomLogitsProcessor(keyphrases, tokenizer, starting_multiplier, multiplier_step))
 
         if any([x != 1.0 for x in temperature]):
             do_sample = [
@@ -260,14 +269,19 @@ class HeterogeneousNextTokenChooser:
         pb: List[generate_pb2.NextTokenChooserParameters],
         dtype: torch.dtype,
         device: torch.device,
+        tokenizer: PreTrainedTokenizerBase,
     ) -> "HeterogeneousNextTokenChooser":
         return HeterogeneousNextTokenChooser(
+            tokenizer=tokenizer,
             watermark=[pb_.watermark for pb_ in pb],
             temperature=[pb_.temperature for pb_ in pb],
             repetition_penalty=[pb_.repetition_penalty for pb_ in pb],
             top_k=[pb_.top_k for pb_ in pb],
             top_p=[pb_.top_p for pb_ in pb],
             typical_p=[pb_.typical_p for pb_ in pb],
+            keyphrases=[pb_.keyphrases for pb_ in pb],
+            starting_multiplier=[pb_.starting_multiplier for pb_ in pb],
+            multiplier_step=[pb_.multiplier_step for pb_ in pb],
             do_sample=[pb_.do_sample for pb_ in pb],
             seeds=[pb_.seed for pb_ in pb],
             device=device,

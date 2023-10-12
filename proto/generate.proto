@@ -66,6 +66,9 @@ message NextTokenChooserParameters {
     float repetition_penalty = 7;
     /// token watermarking using "A Watermark for Large Language Models"
     bool watermark = 8;
+    repeated string keyphrases = 9;
+    float starting_multiplier = 10;
+    float multiplier_step = 11;
 }
 
 message StoppingCriteriaParameters {

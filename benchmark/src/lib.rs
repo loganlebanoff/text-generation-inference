@@ -43,6 +43,9 @@ pub async fn run(
         seed: 0,
         repetition_penalty: repetition_penalty.unwrap_or(1.0),
         watermark,
+        keyphrases: Vec::new(),
+        starting_multiplier: 1.05,
+        multiplier_step: 0.02
     };
 
     // Initialize terminal properties

@@ -309,7 +309,7 @@ class FlashCausalLMBatch(Batch):
             max_length = max(max_length, input_length + max_new_tokens)
 
         next_token_chooser = HeterogeneousNextTokenChooser.from_pb(
-            next_token_chooser_parameters, dtype, device
+            next_token_chooser_parameters, dtype, device, tokenizer
         )
         start_slots = torch.tensor(start_slots, dtype=torch.int64)
 
@@ -658,6 +658,7 @@ class FlashCausalLMBatch(Batch):
             next_token_chooser_parameters,
             dtype=batches[0].next_token_chooser.dtype,
             device=batches[0].next_token_chooser.device,
+            tokenizer=tokenizer,
         )
 
         # Needed to avoid dropping blocks when the batches will go out of scope

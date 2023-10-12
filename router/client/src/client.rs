@@ -124,6 +124,9 @@ impl Client {
                     seed: 0,
                     repetition_penalty: 1.2,
                     watermark: true,
+                    keyphrases: Vec::new(),
+                    starting_multiplier: 1.05,
+                    multiplier_step: 0.02
                 }),
                 stopping_parameters: Some(StoppingCriteriaParameters {
                     max_new_tokens: 2,

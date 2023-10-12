@@ -141,6 +141,9 @@ impl Validation {
             do_sample,
             max_new_tokens,
             stop: stop_sequences,
+            keyphrases,
+            starting_multiplier,
+            multiplier_step,
             truncate,
             seed,
             watermark,
@@ -260,6 +263,9 @@ impl Validation {
             do_sample,
             seed,
             watermark,
+            keyphrases,
+            starting_multiplier,
+            multiplier_step
         };
         let stopping_parameters = StoppingCriteriaParameters {
             max_new_tokens,

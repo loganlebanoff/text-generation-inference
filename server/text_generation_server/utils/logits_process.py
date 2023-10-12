@@ -81,6 +81,25 @@ def static_warper(
     )
 
 
+class CustomLogitsProcessor(LogitsProcessor):
+    def __init__(self, keyphrases: List[str], tokenizer, starting_multiplier: float, multiplier_step: float):
+        self.starting_multiplier = starting_multiplier
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
+        scores *= self.starting_multiplier
+        return scores
+
+
+class HeterogeneousCustomLogitsProcessor(LogitsProcessor):
+    def __init__(self, keyphrases: List[List[str]], tokenizer, starting_multiplier: List[float], multiplier_step: List[float]):
+        self.processors = [CustomLogitsProcessor(k, tokenizer, sm, ms) for k, sm, ms in zip(keyphrases, starting_multiplier, multiplier_step)]
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
+        for i, processor in enumerate(self.processors):
+            scores[i] = processor(input_ids[i], scores[i])
+        return scores
+
+
 class HeterogeneousRepetitionPenaltyLogitsProcessor(LogitsProcessor):
     r"""
     [`LogitsProcessor`] enforcing an exponential penalty on repeated sequences.
